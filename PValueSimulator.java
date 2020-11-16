@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PValueSimulator {
+public class PValueSimulation {
 
     public static List<Double> predictTruePs ( List<double[][]> standardDataList, double ageTarget ) {
         return standardDataList.stream()
@@ -26,10 +26,11 @@ public class PValueSimulator {
     }
 
     ///core code!!!!!!!!!
-    private static double predict ( double[][] pData, double ageTarget ) {
+    private static double predict ( double[][] pVData, double ageTarget ) {
         //change the array into 2dim matrix,which get from  parameter
-        DoubleMatrix2D pValue = new DenseDoubleMatrix2D(pData);
-        //make constant variant to get model error
+        DoubleMatrix2D pValue = new DenseDoubleMatrix2D(pVData);
+
+        //make constant variant to absorb the model error
         double[] constant_ = new double[pValue.rows()];
         Arrays.fill(constant_, 1);
         DoubleMatrix2D constant = new DenseDoubleMatrix2D(new double[][]{constant_});
@@ -43,7 +44,7 @@ public class PValueSimulator {
         double[][] ages_ = {pValue.viewColumn(1).toArray()};
         DoubleMatrix2D agesOriginal = new DenseDoubleMatrix2D(ages_);
 
-        //init the independent variable matrix and add data into it
+        //init a independent variable matrix and fill(append) data into it
         DoubleMatrix2D xStep1 = new DenseDoubleMatrix2D(pValue.rows(), 1);
         xStep1.assign(operator.transpose(constant));
         DoubleMatrix2D xStep2 = appender.appendColumns(xStep1,
@@ -64,7 +65,7 @@ public class PValueSimulator {
         ///construct the independent variable matrix completely
         /////////////////////////////////////////////////////////////
 
-        ///start Solve the equation:f(age|c,θ) = pValue;
+        ///start solve the equation:f(age|c,θ) = pValue;
         // C,θ = (X.T * X)^-1 * X.T * Y
 
         DoubleMatrix2D X_T = operator.transpose(X);
